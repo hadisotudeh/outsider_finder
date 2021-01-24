@@ -31,7 +31,7 @@ photo_profile_dir.mkdir()
 # load data
 
 st.set_page_config(
-    page_title="Talent Detector",
+    page_title="Outlier Detector",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -41,11 +41,9 @@ st.set_page_config(
 def load_data():
     df = pd.read_csv("data/sofifa2020.csv")
     df["name"] = df["name"].apply(lambda name: unidecode(name))
-    # df["positions_list"] = df["positions"].apply(lambda x: x.split(","))
     df["contract"] = df["contract"].apply(
         lambda x: int(x) if not math.isnan(x) else 2020
     )
-    # df["contract"] = df["contract"].astype(int)
     df["player_hashtags"] = (
         df["player_traits"].apply(
             lambda x: ", ".join([c.replace("(AI)", "").strip() for c in eval(x)])
@@ -72,10 +70,6 @@ default_leagues = [
     "German 1. Bundesliga",
     "Holland Eredivisie",
     "Portuguese Liga ZON SAGRES",
-    "Campeonato Brasileiro Série A",
-    "Argentina Primera División",
-    "Belgian Jupiler Pro League",
-    "English League Championship",
 ]
 
 default_positions = ["ST", "CF", "LF", "RF", "LS", "RS"]
@@ -166,9 +160,7 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 ##################################################################
 # sidebar filters
-st.sidebar.title(":pick: Filters")
-
-st.sidebar.title("Talent Pool Conditions:")
+st.sidebar.title(":pick: Search Space Filters:")
 
 leagues = st.sidebar.multiselect(
     "League:", [all_name] + league_list, default=default_leagues
@@ -289,7 +281,7 @@ def scan(leagues, positions, transfer_fee, wage, age):
     search_space["label"] = pd.Series(list(clf.fit_predict(X)))
     search_space["score"] = pd.Series(list(clf.score_samples(X)))
 
-    # The anomaly score of the input samples. The lower, the more abnormal.
+    # The anomaly score of the input samples. The lower, the more outlier.
     search_space.sort_values(by=["score"], inplace=True)
 
     return search_space
@@ -300,25 +292,28 @@ if is_scan:
 
     # calculate summaries to show
     number_of_players = search_space.shape[0]
-    number_of_abnormalPlayers = search_space["label"].value_counts().to_dict()[-1]
+    number_of_outlierPlayers = search_space["label"].value_counts().to_dict()[-1]
 
-    st.markdown(f"**The number of players in the search space: {number_of_players}**")
+    st.markdown(f"The number of players in the search space: {number_of_players}")
     st.markdown(
-        f"**The number of abnormal players in the search space: {number_of_abnormalPlayers}**"
+        f"The number of outlier players in the search space: {number_of_outlierPlayers}"
     )
-
-    st.markdown(f"**Top {max_k} Identified Abnormal Players**:")
-    result = search_space.head(max_k)
+    st.markdown(f"**Top {max_k} Identified Outliers**:")
+    result = search_space[search_space["label"] == -1].head(max_k)
 
     result["Value"] = result["Value"].apply(lambda v: str(v / 1000000))
     create_table(result[show_columns])
 else:
-    st.title(":male-detective: Talent Detector")
-    st.subheader(
-        "This app makes use of [EA SPORTS™ FIFA 2020](https://sofifa.com) KPIs to detect talents"
+    st.title(":male-detective: Outlier Detector")
+    st.markdown(
+        ">Being an _outsider_ is fine because they are the ones who **change** the world and make a real and lasting **difference**."
     )
-    st.subheader(
-        "It first applies filters such as league, age, and market value on players Then, each remaining player is considered as a vector of their KPIs and afterwards [IsolationForest](https://dl.acm.org/doi/10.1109/ICDM.2008.17) is used to detect outlier players and identify them as potential talents."
+    st.markdown(
+        "This app makes use of [EA SPORTS™ FIFA 2020](https://sofifa.com) KPIs to detect outliers. Outlier players are **rare** and have a significantly **different** profile than the majority of the players."
+    )
+
+    st.markdown(
+        "Select filters such as league, age, and market value on players Then, each remaining player is considered as a vector of their KPIs and afterwards [IsolationForest](https://dl.acm.org/doi/10.1109/ICDM.2008.17) is used to detect outliers."
     )
     col1, col2, col3 = st.beta_columns([1, 2, 1])
     col2.image(
@@ -326,11 +321,12 @@ else:
         caption="Example picture of IsolationForest in Sikit-learn",
         use_column_width=True,
     )
-
-# The IsolationForest ‘isolates’ observations by randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of the selected feature.
-
-# Since recursive partitioning can be represented by a tree structure, the number of splittings required to isolate a sample is equivalent to the path length from the root node to the terminating node.
-
-# This path length, averaged over a forest of such random trees, is a measure of normality and our decision function.
-
-# Random partitioning produces noticeably shorter paths for anomalies. Hence, when a forest of random trees collectively produce shorter path lengths for particular samples, they are highly likely to be anomalies.
+    st.markdown(
+        "Since outliers are **few** and **different**, they are easier to _isolate_ compared to normal instances. Isolation Forest builds an ensemble of `Isolation Trees` for the data set to isolates players by randomly selecting a KPI and then randomly selecting a split value between the maximum and minimum values of that KPI."
+    )
+    st.markdown(
+        "Since recursive partitioning can be represented by a tree structure, the number of splittings required to isolate a player is equivalent to the path length from the root node to the terminating node. This path length, averaged over a forest of such random trees, is a measure of being an outlier."
+    )
+    st.markdown(
+        "When a forest of random trees collectively produce shorter path lengths for particular instances, they are highly likely to be outliers. More on this topic can be found **[here](https://en.wikipedia.org/wiki/Isolation_forest)**."
+    )
