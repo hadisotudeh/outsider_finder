@@ -31,7 +31,7 @@ photo_profile_dir.mkdir()
 # load data
 
 st.set_page_config(
-    page_title="Outlier Detector",
+    page_title="Outsider Finder",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -296,24 +296,24 @@ if is_scan:
 
     st.markdown(f"The number of players in the search space: {number_of_players}")
     st.markdown(
-        f"The number of outlier players in the search space: {number_of_outlierPlayers}"
+        f"The number of outsider players in the search space: {number_of_outlierPlayers}"
     )
-    st.markdown(f"**Top {max_k} Identified Outliers**:")
+    st.markdown(f"**Top {max_k} Identified Outsiders**:")
     result = search_space[search_space["label"] == -1].head(max_k)
 
     result["Value"] = result["Value"].apply(lambda v: str(v / 1000000))
     create_table(result[show_columns])
 else:
-    st.title(":male-detective: Outlier Detector")
+    st.title(":male-detective: Outsider Finder")
     st.markdown(
         ">Being an _outsider_ is fine because they are the ones who **change** the world and make a real and lasting **difference**."
     )
     st.markdown(
-        "This app makes use of [EA SPORTS™ FIFA 2020](https://sofifa.com) KPIs to detect outliers. Outlier players are **rare** and have a significantly **different** profile than the majority of the players."
+        "This app makes use of [EA SPORTS™ FIFA 2020](https://sofifa.com) KPIs to detect outsiders. Outsiders are **rare** and have a significantly **different** profile than the majority of the players."
     )
 
     st.markdown(
-        "Select filters such as league, age, and market value on players Then, each remaining player is considered as a vector of their KPIs and afterwards [IsolationForest](https://dl.acm.org/doi/10.1109/ICDM.2008.17) is used to detect outliers."
+        "Select filters such as league, age, and market value on players Then, each remaining player is considered as a vector of their KPIs and afterwards [IsolationForest](https://dl.acm.org/doi/10.1109/ICDM.2008.17) is used to detect outsiders."
     )
     col1, col2, col3 = st.beta_columns([1, 2, 1])
     col2.image(
@@ -322,11 +322,11 @@ else:
         use_column_width=True,
     )
     st.markdown(
-        "Since outliers are **few** and **different**, they are easier to _isolate_ compared to normal instances. Isolation Forest builds an ensemble of `Isolation Trees` for the data set to isolates players by randomly selecting a KPI and then randomly selecting a split value between the maximum and minimum values of that KPI."
+        "Since outsiders are **few** and **different**, they are easier to _isolate_ compared to normal instances. Isolation Forest builds an ensemble of `Isolation Trees` for the data set to isolates players by randomly selecting a KPI and then randomly selecting a split value between the maximum and minimum values of that KPI."
     )
     st.markdown(
-        "Since recursive partitioning can be represented by a tree structure, the number of splittings required to isolate a player is equivalent to the path length from the root node to the terminating node. This path length, averaged over a forest of such random trees, is a measure of being an outlier."
+        "Since recursive partitioning can be represented by a tree structure, the number of splittings required to isolate a player is equivalent to the path length from the root node to the terminating node. This path length, averaged over a forest of such random trees, is a measure of being an outsider."
     )
     st.markdown(
-        "When a forest of random trees collectively produce shorter path lengths for particular instances, they are highly likely to be outliers. More on this topic can be found **[here](https://en.wikipedia.org/wiki/Isolation_forest)**."
+        "When a forest of random trees collectively produce shorter path lengths for particular instances, they are highly likely to be outsiders. More on this topic can be found **[here](https://en.wikipedia.org/wiki/Isolation_forest)**."
     )
